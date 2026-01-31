@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart'; 
+import '../services/auth_gate.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -12,21 +13,20 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    
     Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
 
-      
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const AuthGate(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,
               child: child,
             );
           },
-          transitionDuration: const Duration(milliseconds: 1000), 
+          transitionDuration: const Duration(milliseconds: 1000),
         ),
       );
     });
@@ -35,19 +35,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF8FB3FF), 
+      backgroundColor: const Color(0xFF8FB3FF),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo
             Image.asset(
               'assets/images/logo.png',
               width: 180,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
-                
-                return const Icon(Icons.build_circle, size: 100, color: Colors.white);
+                return const Icon(
+                  Icons.build_circle,
+                  size: 100,
+                  color: Colors.white,
+                );
               },
             ),
             const SizedBox(height: 20),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'data_peminjaman_screen.dart';
+import 'riwayat_peminjam_screen.dart';
+import 'profil_peminjam_screen.dart';
 
 class DashboardPeminjam extends StatefulWidget {
   const DashboardPeminjam({super.key});
@@ -10,17 +13,27 @@ class DashboardPeminjam extends StatefulWidget {
 class _DashboardPeminjamState extends State<DashboardPeminjam> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _pages = <Widget>[
+  final List<Widget> _pages = const [
     DashboardPeminjamContent(),
-    Center(child: Text('Halaman Transaksi')),
-    Center(child: Text('Halaman Riwayat')),
-    Center(child: Text('Halaman Profil')),
+    DataPeminjamanScreen(), // Transaksi
+    RiwayatPeminjamScreen(), // Riwayat
+    ProfilPeminjamScreen(), // Profil
   ];
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  // ✅ Fitur Baru: Fungsi untuk menentukan judul AppBar secara dinamis
+  String _getAppBarTitle() {
+    switch (_selectedIndex) {
+      case 0:
+        return 'Dashboard';
+      case 1:
+        return 'Peminjaman';
+      case 2:
+        return 'Riwayat';
+      case 3:
+        return 'Profil';
+      default:
+        return 'Dashboard';
+    }
   }
 
   @override
@@ -28,40 +41,40 @@ class _DashboardPeminjamState extends State<DashboardPeminjam> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Dashboard Peminjam'),
-        backgroundColor: const Color.fromARGB(255, 251, 252, 252),
-        foregroundColor: Colors.white,
+        title: Text(
+          _getAppBarTitle(), // ✅ Sekarang judul berubah sesuai _selectedIndex
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
+        automaticallyImplyLeading: false, // Menghindari back button otomatis
       ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
-        onDestinationSelected: _onItemTapped,
         selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) =>
+            setState(() => _selectedIndex = index),
         indicatorColor: Colors.blue.shade100,
-        destinations: const <Widget>[
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.grid_view_rounded),
-            label: 'Dashboard',
-          ),
+              icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
           NavigationDestination(
-            icon: Icon(Icons.swap_horiz_rounded),
-            label: 'Transaksi',
-          ),
+              icon: Icon(Icons.swap_horiz_rounded), label: 'Transaksi'),
           NavigationDestination(
-            icon: Icon(Icons.history_rounded),
-            label: 'Riwayat',
-          ),
+              icon: Icon(Icons.history_rounded), label: 'Riwayat'),
           NavigationDestination(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profil',
-          ),
+              icon: Icon(Icons.person_rounded), label: 'Profil'),
         ],
       ),
     );
   }
 }
 
+/* ===================== DASHBOARD CONTENT ===================== */
+// Tidak ada perubahan pada DashboardPeminjamContent dan fiturnya
 class DashboardPeminjamContent extends StatelessWidget {
   const DashboardPeminjamContent({super.key});
 
@@ -69,138 +82,89 @@ class DashboardPeminjamContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Judul Dashboard
             const Text(
               'Dashboard',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 4),
+            const Text(
+              'Dashboard Peminjam',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            const Divider(thickness: 1),
             const SizedBox(height: 20),
-
-            // 2 Card Statistik
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildStatCard(
                   icon: Icons.check_circle_rounded,
                   number: '5',
-                  label: 'peminjaman aktif',
-                  color: Colors.blue.shade700,
+                  label: 'Peminjaman Aktif',
+                  color: Colors.blue.shade600,
                 ),
                 _buildStatCard(
-                  icon: Icons.swap_horiz_rounded,
-                  number: '5',
-                  label: 'alat yang\ndipinjam',
-                  color: Colors.blue.shade700,
+                  icon: Icons.build_rounded,
+                  number: '8',
+                  label: 'Alat Dipinjam',
+                  color: Colors.orange.shade600,
                 ),
               ],
             ),
             const SizedBox(height: 20),
-
-            // Tombol Ajukan Peminjaman
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 48,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // TODO: arahkan ke form ajukan peminjaman
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Fitur ajukan peminjaman belum tersedia')),
+                    const SnackBar(
+                      content: Text('Fitur ajukan peminjaman belum tersedia'),
+                    ),
                   );
                 },
-                icon: const Icon(Icons.swap_horiz, size: 20),
+                icon: const Icon(Icons.swap_horiz, color: Colors.white),
                 label: const Text(
                   'Ajukan Peminjaman',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
+                  backgroundColor: Colors.blue.shade600,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                 ),
               ),
             ),
             const SizedBox(height: 28),
-
-            // Bagian Alat yang Dipinjam + Tabel
             const Text(
               'Alat yang dipinjam',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    // Header Tabel
-                    Row(
-                      children: const [
-                        Expanded(
-                          flex: 4,
-                          child: Text(
-                            'Alat',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Status',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            'Jumlah',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 24),
-
-                    // Baris data
-                    _buildTableRow(
-                      alat: 'Kunci Ring Set 8-24mm',
-                      status: 'Terlambat',
-                      jumlah: '4',
-                      statusColor: Colors.red.shade600,
-                    ),
-                    const Divider(),
-
-                    _buildTableRow(
-                      alat: 'Kunci Sok 1/2 inch Set',
-                      status: 'Dipinjam',
-                      jumlah: '1',
-                      statusColor: const Color.fromARGB(255, 0, 25, 245),
-                    ),
-                    const Divider(),
-
-                    _buildTableRow(
-                      alat: 'Kunci Ring Set 8-24mm',
-                      status: 'Dipinjam',
-                      jumlah: '2',
-                      statusColor: const Color.fromARGB(255, 0, 25, 245),
-                    ),
-                  ],
-                ),
-              ),
+            _buildAlatRow(
+              alat: 'Kunci Ring Set 8–24mm',
+              status: 'Terlambat',
+              jumlah: '4',
+              color: Colors.red.shade600,
+            ),
+            _buildAlatRow(
+              alat: 'Kunci Sok 1/2 inch',
+              status: 'Dipinjam',
+              jumlah: '1',
+              color: Colors.blue.shade600,
+            ),
+            _buildAlatRow(
+              alat: 'Kunci Ring Set 8–24mm',
+              status: 'Dipinjam',
+              jumlah: '2',
+              color: Colors.blue.shade600,
             ),
           ],
         ),
@@ -208,7 +172,7 @@ class DashboardPeminjamContent extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard({
+  static Widget _buildStatCard({
     required IconData icon,
     required String number,
     required String label,
@@ -216,24 +180,21 @@ class DashboardPeminjamContent extends StatelessWidget {
   }) {
     return Expanded(
       child: Card(
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 2,
         margin: const EdgeInsets.symmetric(horizontal: 6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             children: [
               Icon(icon, size: 36, color: color),
               const SizedBox(height: 8),
               Text(
                 number,
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               ),
-              Text(
-                label,
-                style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-                textAlign: TextAlign.center,
-              ),
+              Text(label, style: const TextStyle(color: Colors.grey)),
             ],
           ),
         ),
@@ -241,55 +202,35 @@ class DashboardPeminjamContent extends StatelessWidget {
     );
   }
 
-  Widget _buildTableRow({
+  static Widget _buildAlatRow({
     required String alat,
     required String status,
     required String jumlah,
-    required Color statusColor,
+    required Color color,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 4,
-            child: Text(alat),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 1,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        title: Text(alat, style: const TextStyle(fontWeight: FontWeight.w500)),
+        leading: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
           ),
-          Expanded(
-            flex: 2,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: BorderRadius.circular(20), // lingkaran penuh
-                  boxShadow: [
-                    BoxShadow(
-                      color: statusColor.withOpacity(0.4),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  status,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
+          child: Text(
+            status,
+            style: TextStyle(
+                color: color, fontSize: 12, fontWeight: FontWeight.bold),
           ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              jumlah,
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
+        ),
+        trailing: Text(
+          jumlah,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
       ),
     );
   }

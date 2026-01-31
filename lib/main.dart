@@ -1,31 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Import SEMUA screens yang sudah ada di project
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_shared.dart';
 import 'screens/dashboard_peminjam.dart';
-import 'screens/data_alat_screen.dart';
-import 'screens/data_peminjaman_screen.dart';
-import 'screens/laporan_screen.dart';
-import 'screens/profil_screen.dart';
-import 'screens/manajemen_user_screen.dart';
-import 'screens/kategori_alat_screen.dart';
-import 'screens/pengembalian_screen.dart';
-import 'screens/riwayat_screen.dart'; // ← tambahan penting untuk tab Riwayat Petugas
+import 'services/auth_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Hive
-  await Hive.initFlutter();
+  // ✅ INIT SUPABASE (WAJIB)
+  await Supabase.initialize(
+    url: 'https://tfnuarqygddehvfqpmvn.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmbnVhcnF5Z2RkZWh2ZnFwbXZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4OTUzMzksImV4cCI6MjA4MzQ3MTMzOX0.UzvaQQ6OAjw4541iJedFS-E7WGfFDnT3byGypfPkxlw',
+  );
 
-  // Buka SEMUA box yang dibutuhkan
-  await Hive.openBox('alatBox');           // Data Alat
-  await Hive.openBox('peminjamanBox');     // Data Peminjaman
-  await Hive.openBox('userBox');           // Manajemen User
-  await Hive.openBox('riwayatBox');        // ← tambahan untuk Riwayat (opsional, kalau pakai Hive di riwayat_screen.dart)
+  // ✅ INIT HIVE (TETAP)
+  await Hive.initFlutter();
+  await Hive.openBox('alatBox');
+  await Hive.openBox('peminjamanBox');
+  await Hive.openBox('userBox');
+  await Hive.openBox('riwayatBox');
 
   runApp(const MyApp());
 }
@@ -40,50 +38,9 @@ class MyApp extends StatelessWidget {
       title: 'Workshop Tools',
       theme: ThemeData(
         useMaterial3: true,
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.white,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue.shade700),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1976D2),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          centerTitle: true,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Colors.black87),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      initialRoute: '/', // mulai dari splash
-
-      // Route management (sudah di-upgrade untuk support semua role)
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          case '/':
-            return MaterialPageRoute(builder: (_) => const SplashScreen());
-
-          case '/login':
-            return MaterialPageRoute(builder: (_) => const LoginScreen());
-
-          case '/main':
-            final role = settings.arguments as String? ?? 'Peminjam';
-            return MaterialPageRoute(
-              builder: (_) {
-                if (role == 'Admin' || role == 'Petugas') {
-                  return DashboardShared(role: role); // satu file shared, navbar beda berdasarkan role
-                } else {
-                  return const DashboardPeminjam();
-                }
-              },
-            );
-
-          default:
-            return MaterialPageRoute(builder: (_) => const SplashScreen());
-        }
-      },
+      home: const SplashScreen(),
     );
   }
 }

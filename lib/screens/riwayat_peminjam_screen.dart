@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-class RiwayatScreen extends StatefulWidget {
-  const RiwayatScreen({super.key});
+class RiwayatPeminjamScreen extends StatefulWidget {
+  const RiwayatPeminjamScreen({super.key});
 
   @override
-  State<RiwayatScreen> createState() => _RiwayatScreenState();
+  State<RiwayatPeminjamScreen> createState() => _RiwayatPeminjamScreenState();
 }
 
-class _RiwayatScreenState extends State<RiwayatScreen> {
+class _RiwayatPeminjamScreenState extends State<RiwayatPeminjamScreen> {
   final TextEditingController _dariTanggalCtrl = TextEditingController();
   final TextEditingController _sampaiTanggalCtrl = TextEditingController();
 
+  final String namaPeminjam = 'Neila';
   bool _isLoading = false;
 
-  // Contoh data riwayat persis seperti screenshotmu
   final List<Map<String, dynamic>> _riwayatList = [
     {
       'alat': 'Kunci Ring Set Ring 8-24mm',
@@ -29,25 +29,35 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
     },
     {
       'alat': 'Kunci Ring Set Ring 8-24mm',
-      'peminjam': 'Nella',
-      'status': 'Dipinjam',
+      'peminjam': 'Neila',
+      'status': 'Dikembalikan',
       'jumlah': 2,
     },
   ];
 
-  Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
       case 'terlambat':
         return Colors.red.shade600;
       case 'dipinjam':
-        return Colors.blue.shade600; // biru seperti di screenshot
+        return Colors.blue.shade600;
       default:
         return Colors.green.shade600;
     }
   }
 
   @override
+  void dispose() {
+    _dariTanggalCtrl.dispose();
+    _sampaiTanggalCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final riwayatPeminjam =
+        _riwayatList.where((item) => item['peminjam'] == namaPeminjam).toList();
+
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -59,26 +69,25 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+        centerTitle: true,
         title: const Text(
           'Riwayat',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        centerTitle: true,
       ),
       body: Column(
         children: [
-          // Header putih dengan garis tipis bawah
+          // HEADER
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             decoration: BoxDecoration(
-              color: Colors.white,
               border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade300, width: 1)),
+                bottom: BorderSide(color: Colors.grey.shade300),
+              ),
             ),
             child: const Text(
               'Riwayat Peminjaman',
@@ -86,9 +95,9 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
             ),
           ),
 
-          // Filter tanggal
+          // FILTER TANGGAL (UI ONLY)
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Expanded(
@@ -97,12 +106,12 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                     decoration: InputDecoration(
                       labelText: 'Dari tanggal',
                       hintText: 'dd/mm/yyyy',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
                       filled: true,
                       fillColor: Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    keyboardType: TextInputType.datetime,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -112,82 +121,83 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                     decoration: InputDecoration(
                       labelText: 'Sampai tanggal',
                       hintText: 'dd/mm/yyyy',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)),
                       filled: true,
                       fillColor: Colors.grey[100],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    keyboardType: TextInputType.datetime,
                   ),
                 ),
               ],
             ),
           ),
 
-          // Header tabel
-          Container(
-            color: Colors.white,
+          // HEADER TABEL
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: const [
                 Expanded(
-                    flex: 3,
-                    child: Text('Alat',
-                        style: TextStyle(fontWeight: FontWeight.bold))),
+                  flex: 3,
+                  child: Text(
+                    'Alat',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
                 Expanded(
-                    flex: 2,
-                    child: Text('Peminjam',
-                        style: TextStyle(fontWeight: FontWeight.bold))),
+                  flex: 2,
+                  child: Text(
+                    'Status',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
                 Expanded(
-                    flex: 2,
-                    child: Text('Status',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center)),
-                Expanded(
-                    flex: 1,
-                    child: Text('Jumlah',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center)),
+                  flex: 1,
+                  child: Text(
+                    'Jumlah',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ],
             ),
           ),
 
-          const Divider(height: 1, color: Colors.grey),
+          const Divider(height: 1),
 
-          // List riwayat
+          // LIST RIWAYAT
           Expanded(
-            child: _riwayatList.isEmpty
-                ? const Center(child: Text('Belum ada riwayat peminjaman'))
+            child: riwayatPeminjam.isEmpty
+                ? const Center(
+                    child: Text('Belum ada riwayat peminjaman'),
+                  )
                 : ListView.builder(
-                    itemCount: _riwayatList.length,
+                    itemCount: riwayatPeminjam.length,
                     itemBuilder: (context, index) {
-                      final item = _riwayatList[index];
-                      return Container(
-                        color: Colors.white,
+                      final item = riwayatPeminjam[index];
+                      return Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 12),
                         child: Row(
                           children: [
                             Expanded(
-                                flex: 3,
-                                child: Text(item['alat'] as String? ?? '-')),
-                            Expanded(
-                                flex: 2,
-                                child:
-                                    Text(item['peminjam'] as String? ?? '-')),
+                              flex: 3,
+                              child: Text(item['alat']),
+                            ),
                             Expanded(
                               flex: 2,
                               child: Center(
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 4),
+                                      horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: _getStatusColor(
-                                        item['status'] as String?),
+                                    color: _getStatusColor(item['status']),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Text(
-                                    item['status'] as String? ?? 'Tersedia',
+                                    item['status'],
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
@@ -200,8 +210,9 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                             Expanded(
                               flex: 1,
                               child: Text(
-                                  (item['jumlah'] as int? ?? 0).toString(),
-                                  textAlign: TextAlign.center),
+                                item['jumlah'].toString(),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ],
                         ),
@@ -209,28 +220,6 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                     },
                   ),
           ),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 3, // Riwayat adalah tab 3
-        onDestinationSelected: (index) {
-          // TODO: navigasi ke tab lain (bisa pakai Navigator atau callback ke dashboard)
-          if (index != 3) {
-            Navigator.pop(context); // contoh sederhana kembali ke dashboard
-          }
-        },
-        backgroundColor: Colors.white,
-        indicatorColor: Colors.blue.shade100,
-        destinations: const [
-          NavigationDestination(
-              icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
-          NavigationDestination(icon: Icon(Icons.build_rounded), label: 'Alat'),
-          NavigationDestination(
-              icon: Icon(Icons.swap_horiz_rounded), label: 'Transaksi'),
-          NavigationDestination(
-              icon: Icon(Icons.history_rounded), label: 'Riwayat'),
-          NavigationDestination(
-              icon: Icon(Icons.person_rounded), label: 'Profil'),
         ],
       ),
     );

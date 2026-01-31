@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dashboard_shared.dart';     // untuk Admin & Petugas (dashboard sama)
-import 'dashboard_peminjam.dart';   // khusus Peminjam
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,45 +17,45 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   String? errorMessage;
 
-  void loginDummy() {
+  Future<void> loginSupabase() async {
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
-    Future.delayed(const Duration(seconds: 1), () {
-      final email = emailController.text.trim().toLowerCase();
-      final password = passwordController.text.trim();
+    try {
+      final result = await Supabase.instance.client.auth.signInWithPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
-      setState(() => isLoading = false);
-
-      if (email == 'admin@gmail.com' && password == '123456') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const DashboardShared(role: 'Admin'),
-          ),
-        );
-      } else if (email == 'petugas@gmail.com' && password == '123456') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const DashboardShared(role: 'Petugas'),
-          ),
-        );
-      } else if (email == 'peminjam@gmail.com' && password == '123456') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const DashboardPeminjam(),
-          ),
-        );
-      } else {
+      // Login gagal jika user null
+      if (result.user == null) {
         setState(() {
           errorMessage = 'Email atau password salah';
         });
       }
-    });
+      // Jika login sukses, AuthGate akan otomatis detect session
+    } on AuthException catch (e) {
+      setState(() {
+        errorMessage = e.message;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Terjadi kesalahan: $e';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,9 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo
+                  // LOGO
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -88,12 +86,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: const CircleAvatar(
                       radius: 45,
-                      backgroundColor: Color(0xFF1976D2), // blue.shade700 approx
-                      child: Icon(
-                        Icons.build_rounded,
-                        size: 50,
-                        color: Colors.white,
-                      ),
+                      backgroundColor: Color(0xFF1976D2),
+                      child: Icon(Icons.build_rounded,
+                          size: 50, color: Colors.white),
                     ),
                   ),
 
@@ -102,56 +97,57 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text(
                     'Workshop Tools',
                     style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87),
                   ),
 
                   const SizedBox(height: 8),
                   Text(
                     'Sistem Peminjaman Alat',
-                    style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+                    style: TextStyle(color: Colors.grey[700]),
                   ),
 
                   const SizedBox(height: 48),
 
-                  // Email
+                  // EMAIL
                   TextFormField(
                     controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
                     decoration: InputDecoration(
                       labelText: 'Email',
                       prefixIcon: const Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (value) => value?.trim().isEmpty ?? true ? 'Email wajib diisi' : null,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Email wajib diisi' : null,
                   ),
 
                   const SizedBox(height: 20),
 
-                  // Password dengan toggle
+                  // PASSWORD
                   TextFormField(
                     controller: passwordController,
                     obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
                       labelText: 'Password',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        ),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        icon: Icon(_obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility),
+                        onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword),
                       ),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (value) => value?.trim().isEmpty ?? true ? 'Password wajib diisi' : null,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Password wajib diisi' : null,
                   ),
 
                   if (errorMessage != null)
@@ -159,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.only(top: 12),
                       child: Text(
                         errorMessage!,
-                        style: const TextStyle(color: Colors.redAccent, fontSize: 14),
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
 
@@ -173,41 +169,27 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? null
                           : () {
                               if (_formKey.currentState!.validate()) {
-                                loginDummy();
+                                loginSupabase();
                               }
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1976D2),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       child: isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                            )
-                          : const Text(
-                              'MASUK',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('MASUK',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
-
-                                  ],
+                ],
               ),
             ),
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
   }
 }

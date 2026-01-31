@@ -1,13 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // ✅ Tambahkan ini
+import 'login_screen.dart'; // ✅ Pastikan import ke file login Anda benar
 import 'kategori_alat_screen.dart';
 import 'manajemen_user_screen.dart';
 import 'pengembalian_screen.dart';
 import 'laporan_screen.dart';
 
 class ProfilScreen extends StatelessWidget {
-  final String role; // wajib ditambahkan untuk membedakan Admin/Petugas
+  final String role;
 
   const ProfilScreen({super.key, required this.role});
+
+  // ✅ FUNGSI LOGOUT SUPABASE
+  Future<void> _handleLogout(BuildContext context) async {
+    try {
+      await Supabase.instance.client.auth.signOut();
+      if (context.mounted) {
+        // Menghapus semua history route dan balik ke Login
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Logout berhasil')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal logout: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +46,8 @@ class ProfilScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        automaticallyImplyLeading:
+            false, // ✅ Biar tidak ada tombol back otomatis
         title: const Text(
           'Profil',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
@@ -28,23 +57,27 @@ class ProfilScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Bagian profil utama (disesuaikan role)
+            // Bagian profil utama
             Padding(
               padding: const EdgeInsets.only(top: 40, bottom: 20),
               child: Column(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.blue,
-                    child: const Text(
+                    child: Text(
                       'A',
-                      style: TextStyle(fontSize: 60, color: Colors.white, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 60,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     isPetugas ? 'Aditia' : 'Amin Utama',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -53,14 +86,16 @@ class ProfilScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.red,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       isPetugas ? 'Petugas' : 'Administrator',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -69,7 +104,7 @@ class ProfilScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // List menu – beda untuk Petugas & Admin
+            // List menu
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -80,9 +115,10 @@ class ProfilScreen extends StatelessWidget {
                           title: 'Pengembalian',
                           onTap: () {
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const PengembalianScreen()),
-                            );
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const PengembalianScreen()));
                           },
                         ),
                       ]
@@ -92,9 +128,10 @@ class ProfilScreen extends StatelessWidget {
                           title: 'Kategori Alat',
                           onTap: () {
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const KategoriAlatScreen()),
-                            );
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const KategoriAlatScreen()));
                           },
                         ),
                         _buildMenuItem(
@@ -102,9 +139,10 @@ class ProfilScreen extends StatelessWidget {
                           title: 'Manajemen User',
                           onTap: () {
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const ManajemenUserScreen()),
-                            );
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ManajemenUserScreen()));
                           },
                         ),
                         _buildMenuItem(
@@ -112,9 +150,10 @@ class ProfilScreen extends StatelessWidget {
                           title: 'Pengembalian',
                           onTap: () {
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const PengembalianScreen()),
-                            );
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const PengembalianScreen()));
                           },
                         ),
                         _buildMenuItem(
@@ -122,9 +161,10 @@ class ProfilScreen extends StatelessWidget {
                           title: 'Laporan',
                           onTap: () {
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const LaporanScreen()),
-                            );
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const LaporanScreen()));
                           },
                         ),
                       ],
@@ -133,54 +173,42 @@ class ProfilScreen extends StatelessWidget {
 
             const SizedBox(height: 40),
 
-            // Footer sistem + versi (sama untuk semua)
-            Column(
+            // Footer sistem
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.handshake, color: Colors.blue, size: 30),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Sistem Peminjaman Bengkel Motor',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Version 1.0.0',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                Icon(Icons.handshake, color: Colors.blue, size: 30),
+                SizedBox(width: 8),
+                Text(
+                  'Sistem Peminjaman Bengkel Motor',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            const Text('Version 1.0.0',
+                style: TextStyle(fontSize: 14, color: Colors.grey)),
 
             const SizedBox(height: 40),
 
-            // Tombol Logout merah besar (sama untuk semua)
+            // ✅ TOMBOL LOGOUT
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
               child: SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Logout berhasil')),
-                    );
-                  },
-                  icon: const Icon(Icons.logout, color: Colors.white),
+                  onPressed: () => _handleLogout(context),
                   label: const Text('Logout', style: TextStyle(fontSize: 16)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
             ),
-
             const SizedBox(height: 40),
           ],
         ),
@@ -188,11 +216,10 @@ class ProfilScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildMenuItem(
+      {required IconData icon,
+      required String title,
+      required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -203,10 +230,9 @@ class ProfilScreen extends StatelessWidget {
             Icon(icon, color: Colors.black54, size: 28),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
+              child: Text(title,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w500)),
             ),
             const Icon(Icons.chevron_right, color: Colors.grey),
           ],
