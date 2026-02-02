@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; // ✅ Tambahkan ini
-import 'login_screen.dart'; // ✅ Pastikan import ke file login Anda benar
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'login_screen.dart';
 import 'kategori_alat_screen.dart';
 import 'manajemen_user_screen.dart';
 import 'pengembalian_screen.dart';

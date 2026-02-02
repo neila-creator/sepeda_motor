@@ -3,10 +3,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'screens/splash_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/dashboard_shared.dart';
-import 'screens/dashboard_peminjam.dart';
-import 'services/auth_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -66,7 +66,8 @@ class _KategoriAlatScreenState extends State<KategoriAlatScreen> {
                   controller: _namaKategoriController,
                   decoration: InputDecoration(
                     labelText: 'Nama Kategori',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                     filled: true,
                     fillColor: Colors.grey[100],
                   ),
@@ -76,7 +77,8 @@ class _KategoriAlatScreenState extends State<KategoriAlatScreen> {
                 TextField(
                   decoration: InputDecoration(
                     labelText: 'Stok',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                     filled: true,
                     fillColor: Colors.grey[100],
                   ),
@@ -89,7 +91,8 @@ class _KategoriAlatScreenState extends State<KategoriAlatScreen> {
                     Expanded(
                       child: TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                        child: const Text('Batal',
+                            style: TextStyle(color: Colors.grey)),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -98,24 +101,28 @@ class _KategoriAlatScreenState extends State<KategoriAlatScreen> {
                         onPressed: () {
                           if (_namaKategoriController.text.trim().isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Masukkan nama kategori!')),
+                              const SnackBar(
+                                  content: Text('Masukkan nama kategori!')),
                             );
                             return;
                           }
 
                           // TODO: Simpan ke Hive atau list
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Kategori berhasil ditambahkan')),
+                            const SnackBar(
+                                content: Text('Kategori berhasil ditambahkan')),
                           );
                           Navigator.pop(context);
                           setState(() {
-                            _kategoriList.add(_namaKategoriController.text.trim());
+                            _kategoriList
+                                .add(_namaKategoriController.text.trim());
                           });
                           _namaKategoriController.clear();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         child: const Text('Konfirmasi'),
@@ -163,7 +170,8 @@ class _KategoriAlatScreenState extends State<KategoriAlatScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(bottom: BorderSide(color: Colors.grey.shade300, width: 1)),
+              border: Border(
+                  bottom: BorderSide(color: Colors.grey.shade300, width: 1)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +194,8 @@ class _KategoriAlatScreenState extends State<KategoriAlatScreen> {
                     ),
                     filled: true,
                     fillColor: Colors.grey[100],
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
                   ),
                 ),
               ],
@@ -216,20 +225,23 @@ class _KategoriAlatScreenState extends State<KategoriAlatScreen> {
                       children: [
                         Text(
                           _kategoriList[index],
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
+                              icon: const Icon(Icons.edit,
+                                  color: Colors.blue, size: 20),
                               onPressed: () {
                                 // TODO: edit kategori
                               },
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                              icon: const Icon(Icons.delete,
+                                  color: Colors.red, size: 20),
                               onPressed: () {
                                 // TODO: hapus kategori
                               },

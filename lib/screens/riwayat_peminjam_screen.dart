@@ -70,13 +70,6 @@ class _RiwayatPeminjamScreenState extends State<RiwayatPeminjamScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Riwayat',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
       ),
       body: Column(
         children: [

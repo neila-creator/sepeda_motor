@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'riwayat_screen.dart';
 
 class ProfilPeminjamScreen extends StatelessWidget {
   const ProfilPeminjamScreen({super.key});
+
+  Future<void> _logout(BuildContext context) async {
+    await Supabase.instance.client.auth.signOut();
+
+    // Optional: feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Logout berhasil')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,10 +22,6 @@ class ProfilPeminjamScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Profil',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -26,10 +32,10 @@ class ProfilPeminjamScreen extends StatelessWidget {
               padding: const EdgeInsets.only(top: 40, bottom: 20),
               child: Column(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.blue,
-                    child: const Text(
+                    child: Text(
                       'N',
                       style: TextStyle(
                         fontSize: 60,
@@ -68,7 +74,7 @@ class ProfilPeminjamScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ================= MENU PEMINJAM =================
+            // ================= MENU =================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -80,7 +86,8 @@ class ProfilPeminjamScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => const RiwayatScreen()),
+                          builder: (_) => const RiwayatScreen(),
+                        ),
                       );
                     },
                   ),
@@ -92,10 +99,10 @@ class ProfilPeminjamScreen extends StatelessWidget {
 
             // ================= FOOTER =================
             Column(
-              children: [
+              children: const [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(Icons.handshake, color: Colors.blue, size: 30),
                     SizedBox(width: 8),
                     Text(
@@ -105,8 +112,8 @@ class ProfilPeminjamScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                SizedBox(height: 8),
+                Text(
                   'Version 1.0.0',
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
@@ -122,17 +129,11 @@ class ProfilPeminjamScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/login',
-                      (route) => false,
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Logout berhasil')),
-                    );
-                  },
-                  label: const Text('Logout', style: TextStyle(fontSize: 16)),
+                  onPressed: () => _logout(context),
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Logout',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,

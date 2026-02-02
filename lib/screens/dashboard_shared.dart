@@ -26,9 +26,10 @@ class _DashboardSharedState extends State<DashboardShared> {
     super.initState();
     _pages = [
       DashboardContent(role: widget.role),
-      const alat
-          .DataAlatScreen(), // ✅ PERBAIKAN: Menghapus () ekstra yang menyebabkan error
-      const peminjaman.DataPeminjamanScreen(),
+      const alat.DataAlatScreen(),
+      peminjaman.DataPeminjamanScreen(
+        role: widget.role,
+      ),
       widget.role == 'Petugas' ? const RiwayatScreen() : const LaporanScreen(),
       ProfilScreen(role: widget.role),
     ];
@@ -109,7 +110,6 @@ class _DashboardSharedState extends State<DashboardShared> {
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
         backgroundColor: Colors.white,
-        indicatorColor: Colors.blue.shade100,
         destinations: widget.role == 'Petugas'
             ? const [
                 NavigationDestination(
