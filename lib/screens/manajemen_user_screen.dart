@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ManajemenUserScreen extends StatefulWidget {
   const ManajemenUserScreen({super.key});
@@ -8,160 +9,161 @@ class ManajemenUserScreen extends StatefulWidget {
 }
 
 class _ManajemenUserScreenState extends State<ManajemenUserScreen> {
-  final List<Map<String, String>> _users = [
-    {'email': 'admin@gmail.com', 'role': 'ADMIN'},
-    {'email': 'aditia@gmail.com', 'role': 'PETUGAS'},
-    {'email': 'neila@gmail.com', 'role': 'PENGGUNA'},
-    {'email': 'tutik@gmail.com', 'role': 'PEMINJAM'},
-  ];
+  final supabase = Supabase.instance.client;
 
+  // Mendapatkan warna berdasarkan role
   Color _getRoleColor(String role) {
-    switch (role.toUpperCase()) {
-      case 'ADMIN':
+    switch (role.toLowerCase()) {
+      case 'admin':
         return Colors.red;
-      case 'PETUGAS':
+      case 'petugas':
         return Colors.blue;
-      case 'PENGGUNA':
-        return Colors.green;
-      case 'PEMINJAM':
-        return Colors
-            .blue.shade300; // Menyesuaikan warna badge biru muda di gambar
+      case 'peminjam':
+        return Colors.blue.shade300;
       default:
-        return Colors.grey;
+        return Colors.green;
     }
   }
 
-  // =========================
-  // UPGRADED DIALOG (Sesuai Gambar)
-  // =========================
-  void _showTambahUserModal({Map<String, String>? existing, int? index}) {
-    final isEdit = existing != null && index != null;
-    final emailCtrl = TextEditingController(text: existing?['email'] ?? '');
-    String? selectedRole = existing?['role'] ?? 'PENGGUNA';
+  // ==========================================
+  // LOGIKA DATABASE & AUTH
+  // ==========================================
 
-    showDialog(
-      context: context,
-      builder: (_) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              contentPadding: const EdgeInsets.all(20),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isEdit ? 'Edit User' : 'Tambah User',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
+  // Fungsi Tambah User Baru via Auth
+  Future<void> _tambahUserBaru(String email, String password) async {
+    try {
+      final response = await supabase.auth.signUp(
+        email: email,
+        password: password,
+      );
 
-                  // INPUT EMAIL
-                  TextField(
-                    controller: emailCtrl,
-                    decoration: InputDecoration(
-                      hintText: 'User*',
-                      hintStyle:
-                          const TextStyle(fontSize: 14, color: Colors.black26),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // INPUT ROLE
-                  DropdownButtonFormField<String>(
-                    value: selectedRole,
-                    items: ['ADMIN', 'PETUGAS', 'PENGGUNA', 'PEMINJAM']
-                        .map((e) => DropdownMenuItem(
-                            value: e,
-                            child:
-                                Text(e, style: const TextStyle(fontSize: 13))))
-                        .toList(),
-                    onChanged: (val) => setModalState(() => selectedRole = val),
-                    decoration: InputDecoration(
-                      hintText: 'Role*',
-                      hintStyle:
-                          const TextStyle(fontSize: 14, color: Colors.black26),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Batal',
-                            style: TextStyle(color: Colors.blue)),
-                      ),
-                      const SizedBox(width: 10),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (emailCtrl.text.trim().isEmpty ||
-                              selectedRole == null) return;
-                          setState(() {
-                            if (isEdit) {
-                              _users[index!] = {
-                                'email': emailCtrl.text.trim(),
-                                'role': selectedRole!
-                              };
-                            } else {
-                              _users.add({
-                                'email': emailCtrl.text.trim(),
-                                'role': selectedRole!
-                              });
-                            }
-                          });
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF3F69D0),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        child: Text(isEdit ? 'Simpan' : 'Tambah',
-                            style: const TextStyle(color: Colors.white)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
+      if (response.user != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User berhasil didaftarkan!')),
         );
-      },
-    );
+      }
+    } catch (e) {
+      debugPrint("Error SignUp: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal: ${e.toString()}')),
+        );
+      }
+    }
   }
 
-  void _confirmDelete(int index) {
+  // Fungsi Update Role
+  Future<void> _updateUserRole(String id, String newRole) async {
+    try {
+      await supabase
+          .from('profiles')
+          .update({'role': newRole.toLowerCase()}).eq('id', id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Role berhasil diperbarui')),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error Update: $e");
+    }
+  }
+
+  // Fungsi Hapus User
+  Future<void> _deleteUser(String id) async {
+    try {
+      await supabase.from('profiles').delete().eq('id', id);
+    } catch (e) {
+      debugPrint("Error Delete: $e");
+    }
+  }
+
+  // ==========================================
+  // MODAL DIALOGS
+  // ==========================================
+
+  void _showAddUserModal() {
+    final emailCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Hapus User'),
-        content: const Text('Yakin ingin menghapus user ini?'),
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Tambah User Baru',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailCtrl,
+              decoration: const InputDecoration(
+                  labelText: 'Email', hintText: 'user@mail.com'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: passCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(
+                  labelText: 'Password', hintText: 'Minimal 6 karakter'),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Batal')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3F69D0)),
             onPressed: () {
-              setState(() => _users.removeAt(index));
-              Navigator.pop(context);
+              if (emailCtrl.text.isNotEmpty && passCtrl.text.length >= 6) {
+                _tambahUserBaru(emailCtrl.text.trim(), passCtrl.text.trim());
+                Navigator.pop(context);
+              }
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+            child:
+                const Text('Daftarkan', style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showEditUserModal(Map<String, dynamic> user) {
+    String selectedRole = user['role']?.toString().toUpperCase() ?? 'PEMINJAM';
+
+    showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Edit Role User'),
+          content: DropdownButtonFormField<String>(
+            value: selectedRole,
+            items: ['ADMIN', 'PETUGAS', 'PEMINJAM']
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
+            onChanged: (val) => setModalState(() => selectedRole = val!),
+            decoration: const InputDecoration(
+                labelText: 'Role', border: OutlineInputBorder()),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Batal')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3F69D0)),
+              onPressed: () {
+                _updateUserRole(user['id'], selectedRole);
+                Navigator.pop(context);
+              },
+              child:
+                  const Text('Simpan', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -174,151 +176,110 @@ class _ManajemenUserScreenState extends State<ManajemenUserScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Manajemen User',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Manajemen User',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context)),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFFBFA), // Warna krem halus sesuai gambar
-            borderRadius: BorderRadius.circular(25),
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4)),
-            ],
-          ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              // HEADER BOX: Judul & Tombol Tambah
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Manajemen User',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _showTambahUserModal(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3F69D0),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text('+ Tambah User',
-                        style: TextStyle(color: Colors.white, fontSize: 11)),
-                  ),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: supabase.from('profiles').stream(primaryKey: ['id']),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final users = snapshot.data ?? [];
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBFA),
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4))
                 ],
               ),
-              const SizedBox(height: 20),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Daftar User Sistem',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      ElevatedButton.icon(
+                        onPressed: _showAddUserModal,
+                        icon: const Icon(Icons.person_add,
+                            size: 16, color: Colors.white),
+                        label: const Text('Tambah',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3F69D0)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Divider(thickness: 1),
+                  users.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text('Belum ada data user'))
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: users.length,
+                          itemBuilder: (_, index) {
+                            final user = users[index];
+                            final roleStr =
+                                user['role']?.toString() ?? 'peminjam';
 
-              // HEADER TABEL
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                        flex: 3,
-                        child: Text('User',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 13))),
-                    Expanded(
-                        flex: 2,
-                        child: Text('Role',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 13))),
-                    SizedBox(width: 70), // Spacer untuk action button
-                  ],
-                ),
-              ),
-              const Divider(thickness: 1),
-
-              // LIST USER
-              _users.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Text('Belum ada user'))
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _users.length,
-                      itemBuilder: (_, index) {
-                        final user = _users[index];
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 8),
-                          decoration: const BoxDecoration(
-                            border: Border(
-                                bottom: BorderSide(
-                                    color: Colors.black12, width: 0.5)),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Text(user['email']!,
-                                    style: const TextStyle(fontSize: 12)),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Center(
-                                  child: Container(
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(user['email'] ?? '-',
+                                  style: const TextStyle(fontSize: 13)),
+                              subtitle: Row(
+                                children: [
+                                  Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
+                                        horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: _getRoleColor(user['role']!),
+                                      color: _getRoleColor(roleStr),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: Text(
-                                      user['role']!.toUpperCase(),
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold),
-                                    ),
+                                    child: Text(roleStr.toUpperCase(),
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 9)),
                                   ),
-                                ),
+                                ],
                               ),
-                              // ACTION BUTTONS
-                              SizedBox(
-                                width: 70,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => _showTambahUserModal(
-                                          existing: user, index: index),
-                                      child: const Icon(Icons.edit,
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                      icon: const Icon(Icons.edit,
                                           color: Colors.blue, size: 20),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    GestureDetector(
-                                      onTap: () => _confirmDelete(index),
-                                      child: const Icon(Icons.delete,
+                                      onPressed: () =>
+                                          _showEditUserModal(user)),
+                                  IconButton(
+                                      icon: const Icon(Icons.delete,
                                           color: Colors.red, size: 20),
-                                    ),
-                                  ],
-                                ),
+                                      onPressed: () => _deleteUser(user['id'])),
+                                ],
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-            ],
-          ),
-        ),
+                            );
+                          },
+                        ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

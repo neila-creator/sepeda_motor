@@ -2,42 +2,55 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'riwayat_screen.dart';
 
-class ProfilPeminjamScreen extends StatelessWidget {
+class ProfilPeminjamScreen extends StatefulWidget {
   const ProfilPeminjamScreen({super.key});
+
+  @override
+  State<ProfilPeminjamScreen> createState() => _ProfilPeminjamScreenState();
+}
+
+class _ProfilPeminjamScreenState extends State<ProfilPeminjamScreen> {
+  // User aktif dari Supabase Auth
+  final User? user = Supabase.instance.client.auth.currentUser;
 
   Future<void> _logout(BuildContext context) async {
     await Supabase.instance.client.auth.signOut();
-
-    // Optional: feedback
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logout berhasil')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logout berhasil')),
+      );
+      Navigator.pushReplacementNamed(context, '/login');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final String initial = user?.email?.substring(0, 1).toUpperCase() ?? '?';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ================= PROFIL UTAMA =================
-            Padding(
-              padding: const EdgeInsets.only(top: 40, bottom: 20),
+            // ================= HEADER PROFIL =================
+            Container(
+              width: double.infinity,
+              color: Colors.white, // ⬅️ PENGHILANG LAYAR BIRU
+              padding: const EdgeInsets.only(top: 40, bottom: 24),
               child: Column(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.blue,
                     child: Text(
-                      'N',
-                      style: TextStyle(
+                      initial,
+                      style: const TextStyle(
                         fontSize: 60,
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -45,14 +58,20 @@ class ProfilPeminjamScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Neila',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  Text(
+                    user?.email?.split('@')[0] ?? 'User',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'neila@gmail.com',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  Text(
+                    user?.email ?? 'No Email',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -65,94 +84,78 @@ class ProfilPeminjamScreen extends StatelessWidget {
                     child: const Text(
                       'Peminjam',
                       style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 20),
 
             // ================= MENU =================
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
-                children: [
-                  _buildMenuItem(
-                    icon: Icons.history_rounded,
-                    title: 'Riwayat Peminjaman',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const RiwayatScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // ================= FOOTER =================
-            Column(
-              children: const [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.handshake, color: Colors.blue, size: 30),
-                    SizedBox(width: 8),
-                    Text(
-                      'Sistem Peminjaman Bengkel Motor',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Version 1.0.0',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
-            ),
+            const SizedBox(height: 12),
+            _buildMenuSection(context),
 
             const SizedBox(height: 40),
 
             // ================= LOGOUT =================
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
-              child: SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton.icon(
-                  onPressed: () => _logout(context),
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Logout',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 40),
+            _buildLogoutButton(context),
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  // ================= MENU ITEM =================
+  // ================= MENU =================
+  Widget _buildMenuSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          _buildMenuItem(
+            icon: Icons.history_rounded,
+            title: 'Riwayat Peminjaman',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const RiwayatScreen(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================= LOGOUT BUTTON =================
+  Widget _buildLogoutButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: SizedBox(
+        width: double.infinity,
+        height: 54,
+        child: ElevatedButton.icon(
+          onPressed: () => _logout(context),
+          icon: const Icon(Icons.logout),
+          label: const Text(
+            'Logout',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ================= ITEM MENU =================
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
@@ -160,9 +163,9 @@ class ProfilPeminjamScreen extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         child: Row(
           children: [
             Icon(icon, color: Colors.black54, size: 28),

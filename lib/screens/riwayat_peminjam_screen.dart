@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // Tambah import ini
 
 class RiwayatPeminjamScreen extends StatefulWidget {
   const RiwayatPeminjamScreen({super.key});
@@ -11,29 +12,36 @@ class _RiwayatPeminjamScreenState extends State<RiwayatPeminjamScreen> {
   final TextEditingController _dariTanggalCtrl = TextEditingController();
   final TextEditingController _sampaiTanggalCtrl = TextEditingController();
 
-  final String namaPeminjam = 'Neila';
-  bool _isLoading = false;
+  // Variabel baru untuk koneksi Supabase
+  final supabase = Supabase.instance.client;
+  List<Map<String, dynamic>> _riwayatList = [];
+  bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _riwayatList = [
-    {
-      'alat': 'Kunci Ring Set Ring 8-24mm',
-      'peminjam': 'Neila',
-      'status': 'Terlambat',
-      'jumlah': 4,
-    },
-    {
-      'alat': 'Kunci Sok Set 1/2 inch',
-      'peminjam': 'Tutik',
-      'status': 'Dipinjam',
-      'jumlah': 1,
-    },
-    {
-      'alat': 'Kunci Ring Set Ring 8-24mm',
-      'peminjam': 'Neila',
-      'status': 'Dikembalikan',
-      'jumlah': 2,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchDataRiwayat(); // Ambil data pas halaman dibuka
+  }
+
+  // Fungsi ambil data tanpa ubah struktur list kamu
+  Future<void> _fetchDataRiwayat() async {
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      final data = await supabase
+          .from('peminjaman')
+          .select()
+          .eq('id_user', userId!)
+          .order('created_at', ascending: false);
+
+      setState(() {
+        _riwayatList = List<Map<String, dynamic>>.from(data);
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -55,9 +63,7 @@ class _RiwayatPeminjamScreenState extends State<RiwayatPeminjamScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final riwayatPeminjam =
-        _riwayatList.where((item) => item['peminjam'] == namaPeminjam).toList();
-
+    // Desain tetap sama persis
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -162,14 +168,14 @@ class _RiwayatPeminjamScreenState extends State<RiwayatPeminjamScreen> {
 
           // LIST RIWAYAT
           Expanded(
-            child: riwayatPeminjam.isEmpty
+            child: _riwayatList.isEmpty
                 ? const Center(
                     child: Text('Belum ada riwayat peminjaman'),
                   )
                 : ListView.builder(
-                    itemCount: riwayatPeminjam.length,
+                    itemCount: _riwayatList.length,
                     itemBuilder: (context, index) {
-                      final item = riwayatPeminjam[index];
+                      final item = _riwayatList[index];
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 12),
@@ -177,7 +183,8 @@ class _RiwayatPeminjamScreenState extends State<RiwayatPeminjamScreen> {
                           children: [
                             Expanded(
                               flex: 3,
-                              child: Text(item['alat']),
+                              child: Text(item['alat'] ??
+                                  '-'), // Hubungkan ke kolom 'alat'
                             ),
                             Expanded(
                               flex: 2,
@@ -186,11 +193,13 @@ class _RiwayatPeminjamScreenState extends State<RiwayatPeminjamScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: _getStatusColor(item['status']),
+                                    color:
+                                        _getStatusColor(item['status'] ?? ''),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Text(
-                                    item['status'],
+                                    item['status'] ??
+                                        '-', // Hubungkan ke kolom 'status'
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
@@ -203,7 +212,8 @@ class _RiwayatPeminjamScreenState extends State<RiwayatPeminjamScreen> {
                             Expanded(
                               flex: 1,
                               child: Text(
-                                item['jumlah'].toString(),
+                                item['jumlah']
+                                    .toString(), // Hubungkan ke kolom 'jumlah'
                                 textAlign: TextAlign.center,
                               ),
                             ),

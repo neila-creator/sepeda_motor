@@ -34,6 +34,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Mengambil lebar layar agar ukuran logo adaptif
+    double screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: const Color(0xFF8FB3FF),
       body: Center(
@@ -42,17 +45,23 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             Image.asset(
               'assets/images/logo.png',
-              width: 180,
+              // OPSI 1: Ganti angka manual ke yang lebih besar (misal 250 atau 300)
+              // width: 280,
+
+              // OPSI 2: Pakai persentase layar (0.6 berarti 60% lebar layar) - DISARANKAN
+              width: screenWidth * 0.6,
+
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return const Icon(
                   Icons.build_circle,
-                  size: 100,
+                  size: 150, // Ikut diperbesar jika gambar error
                   color: Colors.white,
                 );
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(
+                height: 30), // Beri jarak lebih sedikit karena logo membesar
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),

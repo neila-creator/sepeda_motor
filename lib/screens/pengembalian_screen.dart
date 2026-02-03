@@ -28,7 +28,8 @@ class PengembalianScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(bottom: BorderSide(color: Colors.grey.shade300, width: 1)),
+              border: Border(
+                  bottom: BorderSide(color: Colors.grey.shade300, width: 1)),
             ),
             child: const Text(
               'Pengembalian Alat',
@@ -42,9 +43,20 @@ class PengembalianScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: const [
-                Expanded(flex: 3, child: Text('Alat', style: TextStyle(fontWeight: FontWeight.bold))),
-                Expanded(flex: 1, child: Text('Jumlah', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-                Expanded(flex: 2, child: Text('Status', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+                Expanded(
+                    flex: 3,
+                    child: Text('Alat',
+                        style: TextStyle(fontWeight: FontWeight.bold))),
+                Expanded(
+                    flex: 1,
+                    child: Text('Jumlah',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center)),
+                Expanded(
+                    flex: 2,
+                    child: Text('Status',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center)),
               ],
             ),
           ),
@@ -58,10 +70,12 @@ class PengembalianScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 return Container(
                   color: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
-                      const Expanded(flex: 3, child: Text('Kunci Sok Set 1/2 inch')),
+                      const Expanded(
+                          flex: 3, child: Text('Kunci Sok Set 1/2 inch')),
                       Expanded(
                         flex: 1,
                         child: Text('1', textAlign: TextAlign.center),
@@ -70,7 +84,8 @@ class PengembalianScreen extends StatelessWidget {
                         flex: 2,
                         child: Center(
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.red.shade600,
                               borderRadius: BorderRadius.circular(16),
@@ -95,18 +110,23 @@ class PengembalianScreen extends StatelessWidget {
         ],
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: 2, // sesuaikan index tab kalau di dashboard_shared (misal Transaksi atau Pengembalian)
+        selectedIndex:
+            2, // sesuaikan index tab kalau di dashboard_shared (misal Transaksi atau Pengembalian)
         onDestinationSelected: (index) {
           // TODO: navigasi antar tab
         },
         backgroundColor: Colors.white,
-        indicatorColor: Colors.blue.shade100,
+
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
+          NavigationDestination(
+              icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
           NavigationDestination(icon: Icon(Icons.build_rounded), label: 'Alat'),
-          NavigationDestination(icon: Icon(Icons.swap_horiz_rounded), label: 'Transaksi'),
-          NavigationDestination(icon: Icon(Icons.bar_chart_rounded), label: 'Laporan'),
-          NavigationDestination(icon: Icon(Icons.person_rounded), label: 'Profil'),
+          NavigationDestination(
+              icon: Icon(Icons.swap_horiz_rounded), label: 'Transaksi'),
+          NavigationDestination(
+              icon: Icon(Icons.bar_chart_rounded), label: 'Laporan'),
+          NavigationDestination(
+              icon: Icon(Icons.person_rounded), label: 'Profil'),
         ],
       ),
     );

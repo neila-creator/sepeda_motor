@@ -8,58 +8,52 @@ import '../screens/dashboard_peminjam.dart';
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
-  // Perbaikan: Mencari role berdasarkan User ID (UUID)
-  Future<String> _getUserRoleById(String userId) async {
+  Future<String?> _getUserRole() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return null;
+
     try {
-      final response = await Supabase.instance.client
+      final data = await Supabase.instance.client
           .from('profiles')
           .select('role')
-          .eq('id', userId)
-          .maybeSingle();
+          .eq('id', user.id)
+          .single();
 
-      if (response == null) {
-        debugPrint('User profile tidak ditemukan untuk ID: $userId');
-        return 'peminjam';
-      }
-
-      return response['role'] ?? 'peminjam';
+      return data['role']?.toString().toLowerCase();
     } catch (e) {
-      debugPrint('Error saat mengambil role: $e');
-      return 'peminjam';
+      debugPrint('ERROR get role: $e');
+      return null;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<AuthState>(
-      stream: Supabase.instance.client.auth.onAuthStateChange,
-      builder: (context, snapshot) {
-        final session = Supabase.instance.client.auth.currentSession;
+    final session = Supabase.instance.client.auth.currentSession;
 
-        if (session == null) {
-          return const LoginScreen();
+    // BELUM LOGIN
+    if (session == null) {
+      return const LoginScreen();
+    }
+
+    // SUDAH LOGIN → CEK ROLE
+    return FutureBuilder<String?>(
+      future: _getUserRole(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
 
-        final userId = session.user.id;
+        final role = snapshot.data;
 
-        return FutureBuilder<String>(
-          future: _getUserRoleById(userId),
-          builder: (context, roleSnapshot) {
-            if (roleSnapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
+        // ADMIN & PETUGAS → DASHBOARD SHARED
+        if (role == 'admin' || role == 'petugas') {
+          return DashboardShared(role: role!);
+        }
 
-            final role = roleSnapshot.data ?? 'peminjam';
-
-            if (role == 'admin' || role == 'petugas') {
-              return DashboardShared(role: role);
-            } else {
-              return const DashboardPeminjam();
-            }
-          },
-        );
+        // DEFAULT → PEMINJAM
+        return const DashboardPeminjam();
       },
     );
   }

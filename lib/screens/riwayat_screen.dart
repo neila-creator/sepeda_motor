@@ -220,7 +220,7 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
           }
         },
         backgroundColor: Colors.white,
-        indicatorColor: Colors.blue.shade100,
+
         destinations: const [
           NavigationDestination(
               icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),

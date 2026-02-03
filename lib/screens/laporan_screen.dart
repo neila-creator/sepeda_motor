@@ -1,66 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class LaporanScreen extends StatelessWidget {
+class LaporanScreen extends StatefulWidget {
   const LaporanScreen({super.key});
 
   @override
+  State<LaporanScreen> createState() => _LaporanScreenState();
+}
+
+class _LaporanScreenState extends State<LaporanScreen> {
+  int totalAlat = 0;
+  int totalTransaksi = 0;
+  int peminjamanAktif = 0;
+  int alatRusak = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLaporanData();
+  }
+
+  Future<void> _fetchLaporanData() async {
+    try {
+      final supabase = Supabase.instance.client;
+
+      final resAlat = await supabase.from('data_alat').select();
+      final resTransaksi = await supabase.from('peminjaman').select();
+      final resAktif =
+          await supabase.from('peminjaman').select().eq('status', 'dipinjam');
+      final resRusak =
+          await supabase.from('data_alat').select().eq('status_alat', 'rusak');
+
+      setState(() {
+        totalAlat = resAlat.length;
+        totalTransaksi = resTransaksi.length;
+        peminjamanAktif = resAktif.length;
+        alatRusak = resRusak.length;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error laporan: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Laporan",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ],
-            ),
-            child: GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.78,
-              children: const [
-                ReportCard(
-                  value: "10",
-                  title: "Total Alat",
-                ),
-                ReportCard(
-                  value: "7",
-                  title: "Total Transaksi",
-                ),
-                ReportCard(
-                  value: "7",
-                  title: "Peminjaman Aktif",
-                ),
-                ReportCard(
-                  value: "1",
-                  title: "Alat Rusak",
-                ),
-              ],
-            ),
-          ),
-        ],
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text(
+          'Laporan Sistem',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(20),
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.78,
+                children: [
+                  ReportCard(
+                    value: totalAlat.toString(),
+                    title: 'Total Alat',
+                  ),
+                  ReportCard(
+                    value: totalTransaksi.toString(),
+                    title: 'Total Transaksi',
+                  ),
+                  ReportCard(
+                    value: peminjamanAktif.toString(),
+                    title: 'Peminjaman Aktif',
+                  ),
+                  ReportCard(
+                    value: alatRusak.toString(),
+                    title: 'Alat Rusak',
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }
 
+/* ================== REPORT CARD ================== */
 class ReportCard extends StatelessWidget {
   final String value;
   final String title;
@@ -75,21 +107,19 @@ class ReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 98, 169, 235),
+        color: const Color(0xFF62A9EB),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 6,
             offset: const Offset(0, 3),
-          )
+          ),
         ],
       ),
       child: Column(
         children: [
           const SizedBox(height: 16),
-
-          // ===== ICON / VALUE =====
           CircleAvatar(
             radius: 30,
             backgroundColor: const Color(0xFFE3F2FD),
@@ -102,22 +132,17 @@ class ReportCard extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // ===== TITLE =====
           Text(
             title,
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
+              color: Colors.white,
             ),
           ),
-
           const Spacer(),
-
-          // ===== BOTTOM / FOOTER =====
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 10),
@@ -128,7 +153,7 @@ class ReportCard extends StatelessWidget {
               ),
             ),
             child: const Text(
-              "...",
+              'Detail',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
